@@ -1,25 +1,27 @@
 import Link from "next/link";
 import Image from "next/image";
-import Upload from "@/components/Upload";
 import { Brain, Zap, FileText } from "lucide-react";
+import AuthButton from "@/components/AuthButton";
+import { UserButton } from "@clerk/nextjs";
+import NewDocumentButton from "@/components/NewDocumentButton";
 
 const features = [
 	{
 		title: "Smart Analysis",
 		description:
-			"Advanced AI extracts semantic meaning, identifying key themes and connections across your library.",
+			"AI-powered document processing with Gemini embeddings to understand PDF content and identify relevant information from documents.",
 		icon: "💡",
 	},
 	{
 		title: "Instant Answers",
 		description:
-			"Get precise citations and detailed explanations in seconds, no matter the length of your document.",
+			"Ask questions about your PDFs and get context-aware responses using RAG with retrieved document knowledge.",
 		icon: "⚡",
 	},
 	{
 		title: "PDF Support",
 		description:
-			"Seamlessly process textbooks, research papers, and complex reports with preserved context and formatting.",
+			"Upload books and novels with automated text extraction, chunking, and storage using Qdrant vector search.",
 		icon: "📄",
 	},
 ];
@@ -40,11 +42,12 @@ function SparkIcon() {
 	);
 }
 
-function ArrowRightIcon() {
+
+function UploadIcon() {
 	return (
 		<svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
 			<path
-				d="M5 12h13m0 0-5-5m5 5-5 5"
+				d="M12 16V4m0 0-4 4m4-4 4 4M5 16.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5"
 				stroke="currentColor"
 				strokeWidth="1.8"
 				strokeLinecap="round"
@@ -82,13 +85,10 @@ export default function HomePage() {
 						/>
 						<span>BookBuddy</span>
 					</Link>
-					{/* center intentionally left empty for a clean header */}
-					<Link
-						href="/chat"
-						className="rounded-full bg-[#f08a3e] px-4 py-2 text-sm font-medium text-black shadow-[0_0_24px_rgba(240,138,62,0.35)] transition duration-300 hover:scale-[1.03] hover:bg-[#ffa55f]"
-					>
-						New Document
-					</Link>
+					<div className="flex items-center gap-4">
+						<UserButton />
+						<NewDocumentButton />
+					</div>
 				</div>
 			</header>
 
@@ -104,17 +104,17 @@ export default function HomePage() {
 					</h1>
 
 					<p className="mt-6 max-w-2xl text-base leading-7 text-zinc-300 sm:text-lg">
-						Upload a PDF, ask questions, and get instant answers from your reading list. Built for a dark, focused reading flow with soft glow and subtle motion.
+						Turn your PDFs into interactive conversations. Ask, explore, and understand your documents with AI-powered insights.
 					</p>
 
 					<div className="mt-10 flex flex-col gap-4 sm:flex-row">
-						<Upload label="Upload PDF" />
+						<AuthButton />
 						<Link
 							href="/chat"
 							className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#8f5f42] bg-transparent px-6 py-4 text-sm font-medium text-[#f4b17d] transition duration-300 hover:border-[#f4b17d] hover:bg-white/5 hover:shadow-[0_0_30px_rgba(244,177,125,0.12)]"
 						>
-							Explore Demo
-							<ArrowRightIcon />
+							<UploadIcon />
+							Upload PDF
 						</Link>
 					</div>
 				</div>
@@ -147,15 +147,15 @@ export default function HomePage() {
 							<ul className="mt-8 w-full max-w-xl space-y-4">
 								<li className="mx-auto flex w-full items-center justify-center gap-4">
 									<span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#0f0d0c] text-[#f4b17d]"><svg viewBox="0 0 24 24" className="h-4 w-4"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg></span>
-									<span className="text-zinc-300">Context-aware dialogue system</span>
+									<span className="text-zinc-300">PDF-based AI question answering</span>
 								</li>
 								<li className="mx-auto flex w-full items-center justify-center gap-4">
 									<span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#0f0d0c] text-[#f4b17d]"><svg viewBox="0 0 24 24" className="h-4 w-4"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg></span>
-									<span className="text-zinc-300">Multi-document cross-referencing</span>
+									<span className="text-zinc-300">Semantic retrieval with Qdrant</span>
 								</li>
 								<li className="mx-auto flex w-full items-center justify-center gap-4">
 									<span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#0f0d0c] text-[#f4b17d]"><svg viewBox="0 0 24 24" className="h-4 w-4"><path d="M20 6L9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg></span>
-									<span className="text-zinc-300">Semantic search and discovery</span>
+									<span className="text-zinc-300">Gemini-powered RAG responses</span>
 								</li>
 							</ul>
 						</div>
@@ -166,19 +166,11 @@ export default function HomePage() {
 			<footer className="relative z-10 border-t border-white/8 bg-black/20">
 				<div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-6 text-sm text-zinc-400 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
 					<span className="text-[#f4b17d]">BookBuddy</span>
-					<div className="flex gap-6">
-						<a href="#features" className="transition hover:text-white">
-							Terms
-						</a>
-						<a href="#features" className="transition hover:text-white">
-							Privacy
-						</a>
-						<a href="#features" className="transition hover:text-white">
-							Support
-						</a>
-						<a href="#features" className="transition hover:text-white">
-							Contact
-						</a>
+					<div className="flex items-center gap-2 text-zinc-400">
+						<span className="text-base text-zinc-400">
+								©
+							</span>
+								<span>2026 BookBuddy</span>
 					</div>
 				</div>
 			</footer>

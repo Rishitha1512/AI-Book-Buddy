@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,7 +33,11 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${spaceGrotesk.variable} h-full scroll-smooth antialiased`}
     >
-      <body className="min-h-full bg-[#0b0a09] text-zinc-100">{children}</body>
+      <body className="min-h-full bg-[#0b0a09] text-zinc-100">
+        <ClerkProvider>
+          {children}
+        </ClerkProvider>
+      </body>
     </html>
   );
 }

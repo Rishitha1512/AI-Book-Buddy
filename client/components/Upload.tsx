@@ -4,7 +4,10 @@ import { useRef, useState } from "react";
 
 type UploadProps = {
 	label?: string;
+	uploadedLabel?: string;
+	switchToUploadedLabel?: boolean;
 	className?: string;
+	showIcon?: boolean;
 };
 
 function UploadIcon() {
@@ -21,9 +24,16 @@ function UploadIcon() {
 	);
 }
 
-export default function Upload({ label = "Upload PDF", className = "" }: UploadProps) {
+export default function Upload({
+	label = "Upload PDF",
+	uploadedLabel = "View Full Document",
+	switchToUploadedLabel = false,
+	className = "",
+	showIcon = true,
+}: UploadProps) {
 	const inputRef = useRef<HTMLInputElement>(null);
-	const [fileName, setFileName] = useState("No file selected");
+	const [fileName, setFileName] = useState("");
+	const buttonLabel = switchToUploadedLabel && fileName ? uploadedLabel : label;
 
 	return (
 		<div className={className}>
@@ -34,7 +44,7 @@ export default function Upload({ label = "Upload PDF", className = "" }: UploadP
 				className="hidden"
 				onChange={(event) => {
 					const file = event.target.files?.[0];
-					setFileName(file?.name ?? "No file selected");
+					setFileName(file?.name ?? "");
 				}}
 			/>
 			<button
@@ -42,10 +52,10 @@ export default function Upload({ label = "Upload PDF", className = "" }: UploadP
 				onClick={() => inputRef.current?.click()}
 				className="inline-flex min-w-[180px] items-center justify-center gap-2 rounded-2xl bg-[#f08a3e] px-6 py-4 text-sm font-medium text-black shadow-[0_0_24px_rgba(240,138,62,0.35)] transition duration-300 hover:scale-[1.02] hover:bg-[#ffa55f]"
 			>
-				<UploadIcon />
-				{label}
+				{showIcon ? <UploadIcon /> : null}
+				{buttonLabel}
 			</button>
-			<p className="mt-2 text-xs text-zinc-400">{fileName}</p>
+			{fileName ? <p className="mt-2 text-xs text-zinc-400">{fileName}</p> : null}
 		</div>
 	);
 }
