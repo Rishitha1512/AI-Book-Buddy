@@ -3,7 +3,8 @@ import Image from "next/image";
 import { Brain, Zap, FileText } from "lucide-react";
 import AuthButton from "@/components/AuthButton";
 import { UserButton } from "@clerk/nextjs";
-import NewDocumentButton from "@/components/NewDocumentButton";
+import LibraryButton from "@/components/LibraryButton";
+import UploadPdfButton from "@/components/UploadPdfButton";
 
 const features = [
 	{
@@ -43,20 +44,6 @@ function SparkIcon() {
 }
 
 
-function UploadIcon() {
-	return (
-		<svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
-			<path
-				d="M12 16V4m0 0-4 4m4-4 4 4M5 16.5V19a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5"
-				stroke="currentColor"
-				strokeWidth="1.8"
-				strokeLinecap="round"
-				strokeLinejoin="round"
-			/>
-		</svg>
-	);
-}
-
 export default function HomePage() {
 	return (
 		<main className="relative min-h-screen overflow-hidden bg-[#0b0a09] text-zinc-100">
@@ -87,7 +74,7 @@ export default function HomePage() {
 					</Link>
 					<div className="flex items-center gap-4">
 						<UserButton />
-						<NewDocumentButton />
+						<LibraryButton />
 					</div>
 				</div>
 			</header>
@@ -108,15 +95,9 @@ export default function HomePage() {
 					</p>
 
 					<div className="mt-10 flex flex-col gap-4 sm:flex-row">
-						<AuthButton />
-						<Link
-							href="/chat"
-							className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#8f5f42] bg-transparent px-6 py-4 text-sm font-medium text-[#f4b17d] transition duration-300 hover:border-[#f4b17d] hover:bg-white/5 hover:shadow-[0_0_30px_rgba(244,177,125,0.12)]"
-						>
-							<UploadIcon />
-							Upload PDF
-						</Link>
-					</div>
+    <AuthButton />
+    <UploadPdfButton />
+</div>
 				</div>
 
 				<div id="features" className="mt-20">

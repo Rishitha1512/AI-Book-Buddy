@@ -25,32 +25,49 @@ const splitDocuments = async (docs) => {
   return chunks;
 };
 
-const storeChunks = async (chunks) => {
+const storeChunks = async (chunks, documentId) => {
   const vectorStore = await getVectorStore();
 
-  await vectorStore.addDocuments(chunks);
+  // Attach documentId to each chunk's metadata
+  const chunksWithMetadata = chunks.map((chunk) => {
+    chunk.metadata = {
+      ...chunk.metadata,
+      documentId: documentId.toString(),
+    };
+    return chunk;
+  });
+
+  await vectorStore.addDocuments(chunksWithMetadata);
 
   return chunks.length;
 };
 
-const retrieveChunks = async (question) => {
-  // Connect to Qdrant
+const retrieveChunks = async (question, documentId) => {
   const vectorStore = await getVectorStore();
 
-  // Create a retriever
+  // Filter Qdrant search strictly to this documentId
   const retriever = vectorStore.asRetriever({
     k: 2,
+    filter: documentId
+      ? {
+          must: [
+            {
+              key: "metadata.documentId",
+              match: { value: documentId.toString() },
+            },
+          ],
+        }
+      : undefined,
   });
 
-  // Search for relevant chunks
   const docs = await retriever.invoke(question);
 
   return docs;
 };
 
-const askQuestion = async (question) => {
-  // 1. Retrieve relevant chunks
-  const docs = await retrieveChunks(question);
+const askQuestion = async (question, documentId) => {
+  // 1. Retrieve relevant chunks for THIS specific document
+  const docs = await retrieveChunks(question, documentId);
 
   // 2. Combine all retrieved text
   const context = docs
@@ -59,10 +76,25 @@ const askQuestion = async (question) => {
 
   // 3. Ask Gemini
   const answer = await generateAnswer(context, question);
+  // 4. Build citations from retrieved chunks
+const citations = docs.map((doc) => {
+  const page = doc.metadata?.loc?.pageNumber ?? 1;
+
+  // First 150 characters of the retrieved chunk
+  const preview =
+    doc.pageContent.length > 150
+      ? doc.pageContent.slice(0, 150) + "..."
+      : doc.pageContent;
+
+  return {
+    page,
+    preview,
+  };
+});
 
   return {
     answer,
-    sources: docs,
+    citations,
   };
 };
 

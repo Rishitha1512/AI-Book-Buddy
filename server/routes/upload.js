@@ -1,6 +1,8 @@
 const express = require("express");
 const multer = require("multer");
 const { loadPDF, splitDocuments, storeChunks } = require("../services/rag");
+const Document = require("../models/Document");
+const Chat = require("../models/Chat");
 
 const router = express.Router();
 
@@ -28,14 +30,29 @@ const docs = await loadPDF(req.file.path);
 
 const chunks = await splitDocuments(docs);
 
-await storeChunks(chunks);
+// 1. Create document in MongoDB first to get the _id
+const savedDoc = await Document.create({
+  clerkUserId: req.body.clerkUserId || "guest_user",
+  fileName: req.file.originalname,
+  pages: docs.length,
+});
+
+// 2. Pass savedDoc._id into storeChunks
+await storeChunks(chunks, savedDoc._id);
 
 console.log("Pages:", docs.length);
 console.log("Chunks:", chunks.length);
 console.log("Stored in Qdrant!");
 
+await Chat.create({
+  documentId: savedDoc._id,
+  messages: [],
+});
+
+console.log("Saved to MongoDB ✅:", savedDoc);
 res.json({
   message: "PDF processed successfully",
+  documentId: savedDoc._id,
   pages: docs.length,
   chunks: chunks.length,
 });
