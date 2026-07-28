@@ -2,9 +2,14 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const connectMongo = require("./config/mongo");
+
+// Connect to MongoDB
+connectMongo();
 
 const uploadRoute = require("./routes/upload");
 const chatRoute = require("./routes/chat");
+const documentsRoute = require("./routes/documents");
 
 const app = express();
 
@@ -14,6 +19,7 @@ app.use(express.json());
 
 app.use("/upload", uploadRoute);
 app.use("/chat", chatRoute);
+app.use("/documents", documentsRoute);
 
 // Existing route
 app.get("/", (req, res) => {

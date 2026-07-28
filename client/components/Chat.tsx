@@ -1,12 +1,19 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { FileText, User, Bot, Upload } from "lucide-react";
+import { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import { FileText, User, Bot, Upload, ChevronDown, ChevronUp } from "lucide-react";
+
+type Citation = {
+	page: number;
+	preview: string;
+};
 
 type Message = {
 	role: "assistant" | "user";
 	content: string;
-	citation?: string;
+	citations?: Citation[];
 };
 
 function SendIcon() {
@@ -46,13 +53,61 @@ function ThinkingDots() {
 	);
 }
 
-export default function Chat() {
+type ChatProps = {
+  documentId?: string;
+};
+
+export default function Chat({ documentId }: ChatProps) {
+	const router = useRouter();
+	const { user } = useUser();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [prompt, setPrompt] = useState("");
 	const [uploadedFileName, setUploadedFileName] = useState("");
 	const [uploadStatus, setUploadStatus] = useState<"PROCESSING" | "READY" | "">("");
 	const [isLoading, setIsLoading] = useState(false);
+	const [openCitation, setOpenCitation] = useState<number | null>(null);
 	const fileInputRef = useRef<HTMLInputElement>(null);
+	useEffect(() => {
+        async function fetchDocumentDetails() {
+            if (!documentId) return;
+
+            try {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/documents/${documentId}`);
+                if (response.ok) {
+                    const doc = await response.json();
+                    setUploadedFileName(doc.fileName);
+                    setUploadStatus("READY");
+                }
+            } catch (error) {
+                console.error("Error fetching document details:", error);
+            }
+        }
+
+        fetchDocumentDetails();
+    }, [documentId]);
+
+	
+	useEffect(() => {
+    async function fetchChatHistory() {
+        if (!documentId) return;
+
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/chat/${documentId}`
+            );
+
+            const data = await response.json();
+
+            setMessages(data.messages || []);
+
+        } catch(error) {
+            console.error("Failed loading chat:", error);
+        }
+    }
+
+    fetchChatHistory();
+
+}, [documentId]);
 
 	const sendMessage = async () => {
 	const text = prompt.trim();
@@ -81,6 +136,7 @@ export default function Chat() {
 				},
 				body: JSON.stringify({
 					message: text,
+					documentId,
 				}),
 			}
 		);
@@ -88,15 +144,13 @@ export default function Chat() {
 		const data = await response.json();
 
 		setMessages((current) => [
-			...current,
-			{
+	...current,
+	{
 		role: "assistant",
 		content: data.answer,
-		citation: data.sources?.[0]
-			? `Page ${data.sources[0].metadata.loc.pageNumber} · Lines ${data.sources[0].metadata.loc.lines.from}-${data.sources[0].metadata.loc.lines.to}`
-			: undefined,
+		citations: data.citations,
 	},
-		]);
+]);
 		setIsLoading(false);
 	} catch (err) {
 		setIsLoading(false);
@@ -129,7 +183,13 @@ export default function Chat() {
 	setUploadStatus("PROCESSING");
 
 	const formData = new FormData();
-	formData.append("pdf", file);
+
+// 1. Text fields FIRST
+const userId = user?.id || "guest_user";
+formData.append("clerkUserId", userId);
+
+// 2. File LAST
+formData.append("pdf", file);
 
 	try {
 		const response = await fetch(
@@ -145,6 +205,7 @@ export default function Chat() {
 		console.log(data);
 
 		setUploadStatus("READY");
+		router.replace(`/chat/${data.documentId}`);
 	} catch (error) {
 		console.error(error);
 		setUploadStatus("");
@@ -201,11 +262,52 @@ export default function Chat() {
           >
             <p>{message.content}</p>
 
-            {message.citation ? (
-              <p className="mt-3 inline-flex rounded-full border border-[#8f5f42]/45 bg-[#f4b17d]/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-[#f4b17d]">
-                {message.citation}
-              </p>
-            ) : null}
+{message.citations?.length ? (
+	<div className="mt-3 space-y-2">
+
+		{message.citations.map((citation, index) => (
+			<div
+				key={index}
+				className="overflow-hidden rounded-lg border border-[#8f5f42]/45 bg-[#f4b17d]/10"
+			>
+
+				<button
+					onClick={() =>
+						setOpenCitation(
+							openCitation === index ? null : index
+						)
+					}
+					className="flex w-full items-center justify-between px-3 py-2 text-left transition hover:bg-white/5"
+				>
+
+					<span className="text-[11px] uppercase tracking-[0.18em] text-[#f4b17d]">
+						Page {citation.page}
+					</span>
+
+					{openCitation === index ? (
+	<ChevronUp className="h-4 w-4 text-zinc-400" />
+) : (
+	<ChevronDown className="h-4 w-4 text-zinc-400" />
+)}
+
+				</button>
+
+
+				{openCitation === index && (
+					<div className="border-t border-white/10 px-3 py-2">
+
+						<p className="text-xs leading-5 text-zinc-300">
+							{citation.preview}
+						</p>
+
+					</div>
+				)}
+
+			</div>
+		))}
+
+	</div>
+) : null}
           </div>
 
           {message.role === "user" && (

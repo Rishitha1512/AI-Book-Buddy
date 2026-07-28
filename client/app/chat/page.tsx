@@ -24,7 +24,15 @@ export default function ChatPage() {
 		<span>BookBuddy</span>
 	</Link>
 
-	<UserButton />
+	<div className="flex items-center gap-6">
+    <Link
+        href="/library"
+        className="text-sm font-medium text-[#f4b17d] transition duration-200 hover:underline hover:text-[#ffa55f]"
+    >
+        Library
+    </Link>
+    <UserButton />
+</div>
 
 </header>
 
